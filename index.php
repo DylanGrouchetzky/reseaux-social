@@ -22,6 +22,8 @@ if (isset($_GET['action'])){
 		image($_GET['id']);
 	}elseif($_GET['action'] == 'visitegalerie'){
 		visitegalerie($_GET['name'], $_GET['id']);
+	}elseif($_GET['action'] == 'parametre'){
+		parametre($_GET['id']);
 	}
 }
 else{

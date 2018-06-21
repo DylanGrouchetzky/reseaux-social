@@ -4,6 +4,7 @@ require_once ('model/insertmanager.php');
 require_once ('model/viewmanager.php');
 require_once ('model/Verifymanager.php');
 require_once ('model/Deletemanager.php');
+require_once ('model/Parametremanager.php');
 
 function connect(){
 	session_start();
@@ -60,6 +61,10 @@ function inscription (){
 									$mdp = sha1($mdp);
 									$insertmanager = new Insertmanager();
 									$insertmbr = $insertmanager->insertmbr($pseudo, $mdp, $mail);
+									$viewmanager = new Viewmanager();
+									$infoprofil = $viewmanager->infoprofilview($pseudo);
+									$userinfo = $infoprofil->fetch();
+									$insertpara = $insertmanager->newparametre($userinfo['id']);
 									$pseudo = "";
 									$mail = "";
 									$mail2 = "";
@@ -106,9 +111,11 @@ function acceuil(){
 
 		$_GET['id'] = intval($_GET['id']);
 		$viewmanager = new Viewmanager();
+		$parametremanager = new Parametremanager();
 		$topicality = $viewmanager->topicality();
 		$requser = $viewmanager->infoprofil($_GET['id']);
 		$userinfo = $requser->fetch();
+		$infoparametre = $parametremanager->selectparametre($userinfo['id']);
 		$jouractuel = date('d');
 		$moisactuel = date('m');
 		if (empty($userinfo['picture'])){
@@ -151,8 +158,15 @@ function acceuil(){
 			$inserttopicality = $insertmanager->addcomment($id, $name, $picture, $heure, $date, $message);
 			$_POST['commentaire']="";
 			header('Location: index.php?action=acceuil&id='.$userinfo['id']);
-		}elseif (isset($_POST['topicality']) AND empty($_POST['messagetopicality'])) {
-			$erreur = "Le champ de votre message est vide";
+		}elseif (isset($_POST['comment']) AND empty($_POST['messagetopicality'])) {
+			$iderreur = $_POST['idtopicality'];
+			$erreur2 = "Le champ de votre message est vide";
+		}
+		if(isset($_POST['deletebillet'])){
+			$deletemanager = new Deletemanager();
+			$deletebillet = $deletemanager->deleteonetopicality($_POST['idbillet']);
+			$deletecomment = $deletemanager->deletecommenttopicality($_POST['idbillet']);
+			header('Location: index.php?action=acceuil&id='.$userinfo['id']);
 		}
 
 		require ('view/acceuil.php');
@@ -172,6 +186,8 @@ function profil($id){
 	$requser = $viewmanager->infoprofil($id);
 	$userinfo = $requser->fetch();
 	$reqtopicality = $viewmanager->topicalityprofil($userinfo['id']);
+	$parametremanager = new Parametremanager();
+	$infoparametre = $parametremanager->selectparametre($userinfo['id']);
 	$jouractuel = date('d');
 	$moisactuel = date('m');
 	if (empty($userinfo['picture'])){
@@ -194,6 +210,38 @@ function profil($id){
 	}else{
 		$userinfo['passion'] = "Ces passion sont :".$userinfo['passion'];
 	}
+	if(isset($_POST['topicality']) AND !empty($_POST['messagetopicality'])) {
+		$message = htmlspecialchars($_POST['messagetopicality']);
+		$date = date('d/m/Y');
+		$heure = date('H:i');
+		$insertmanager = new Insertmanager();
+		$insertmes = $insertmanager->insertmes($userinfo['id'], $userinfo['name'], $userinfo['picture'], $heure, $date, $message);
+		$_POST['messagetopicality']="";
+		header('Location: index.php?action=profil&id='.$userinfo['id']);
+		}elseif (isset($_POST['topicality']) AND empty($_POST['messagetopicality'])) {
+			$erreur = "Le champ de votre message est vide";
+		}
+		if (isset($_POST['comment']) AND !empty($_POST['commentaire'])){
+			$message = $_POST['commentaire'];
+			$date = date('d/m/Y');
+			$heure = date('H:i');
+			$id = $_POST['idtopicality'];
+			$name = $userinfo['name'];
+			$picture = $userinfo['picture'];
+			$insertmanager = new Insertmanager();
+			$inserttopicality = $insertmanager->addcomment($id, $name, $picture, $heure, $date, $message);
+			$_POST['commentaire']="";
+			header('Location: index.php?action=profil&id='.$userinfo['id']);
+		}elseif (isset($_POST['comment']) AND empty($_POST['messagetopicality'])) {
+			$iderreur = $_POST['idtopicality'];
+			$erreur2 = "Le champ de votre message est vide";
+		}
+		if(isset($_POST['deletebillet'])){
+			$deletemanager = new Deletemanager();
+			$deletebillet = $deletemanager->deleteonetopicality($_POST['idbillet']);
+			$deletecomment = $deletemanager->deletecommenttopicality($_POST['idbillet']);
+			header('Location: index.php?action=profil&id='.$userinfo['id']);
+		}
 
 	require ('view/profil.php');
 }
@@ -205,6 +253,8 @@ function visited ($name, $id){
 	$requser = $viewmanager->infoprofilview($name);
 	$userinfo = $requser->fetch();
 	$reqtopicality = $viewmanager->topicalityprofil($userinfo['id']);
+	$parametremanager = new Parametremanager();
+	$infoparametre = $parametremanager->selectparametre($userinfo['id']);
 	$jouractuel = date('d');
 	$moisactuel = date('m');
 	if (empty($userinfo['picture'])){
@@ -246,6 +296,8 @@ function visitegalerie($name, $id){
 	$viewmanager = new Viewmanager();
 	$infoprofil = $viewmanager->infoprofil($id);
 	$userinfo = $infoprofil->fetch();
+	$parametremanager = new Parametremanager();
+	$infoparametre = $parametremanager->selectparametre($userinfo['id']);
 	$infoprofilview = $viewmanager->infoprofilview($name);
 	$viewid = $infoprofilview->fetch();
 	$pictureview = $viewmanager->bibliothequeimage($viewid['id']);
@@ -256,6 +308,8 @@ function modifier($id){
 	$viewmanager = new Viewmanager();
 	$requser = $viewmanager->infoprofil($id);
 	$userinfo = $requser->fetch();
+	$parametremanager = new Parametremanager();
+	$infoparametre = $parametremanager->selectparametre($userinfo['id']);
 	$anne = date('Y');
 	if (isset($_POST['modifier'])){
 		$pseudo = htmlspecialchars($_POST['pseudo']);
@@ -293,6 +347,7 @@ function deconnexion(){
 
 function billet($idbillet, $id){
 	$viewmanager = new Viewmanager();
+	$idbillet = $idbillet;
 	$billet = $viewmanager->selectbillet($idbillet);
 	$infobillet = $billet->fetch();
 	$requser = $viewmanager->infoprofil($id);
@@ -300,6 +355,8 @@ function billet($idbillet, $id){
 	$comment = $viewmanager->comment($idbillet);
 	$jouractuel = date('d');
 	$moisactuel = date('m');
+	$parametremanager = new Parametremanager();
+	$infoparametre = $parametremanager->selectparametre($userinfo['id']);
 	if (empty($userinfo['picture'])){
 			$userinfo['picture'] = 'inconnu.png';
 	}
@@ -334,6 +391,11 @@ function billet($idbillet, $id){
 	}elseif (isset($_POST['topicality']) AND empty($_POST['messagetopicality'])) {
 		$erreur = "Le champ de votre message est vide";
 	}
+	if(isset($_POST['deletecomment'])){
+		$deletemanager = new Deletemanager();
+		$deletecomment = $deletemanager->deleteonecomment($_POST['idcomment']);
+		header('Location: index.php?action=billet&idbillet='.$idbillet.'&id='.$userinfo['id']);
+	}
 
 	require ('view/billet.php');
 }
@@ -343,11 +405,14 @@ function image($id){
 	$requser = $viewmanager->infoprofil($id);
 	$infoprofil = $requser->fetch();
 	$infopicture = $viewmanager->bibliothequeimage($id);
+	$parametremanager = new Parametremanager();
+	$infoparametre = $parametremanager->selectparametre($infoprofil['id']);
 	if(isset($_POST['ajout']) AND !empty($_POST['newpicture'])){
 		$newpicture = htmlspecialchars($_POST['newpicture']);
+		$newpourqui = htmlspecialchars($_POST['pourqui']);
 		$id = $infoprofil['id'];
 		$insertmanager = new Insertmanager();
-		$insertpicture = $insertmanager->newpicture($id, $newpicture);
+		$insertpicture = $insertmanager->newpicture($id, $newpicture, $newpourqui);
 		$_POST['newpicture'] = "";
 		header('Location: index.php?action=image&id='.$id);
 	}elseif(isset($_POST['ajout']) AND empty($_POST['newpicture'])){
@@ -359,6 +424,20 @@ function image($id){
 		$updatepicturetopicality = $insertmanager->updatepicturetopicality($infoprofil['name'], $_POST['updateprofil']);
 		$updatecomment = $insertmanager->updatepicturecomment($infoprofil['name'], $_POST['updateprofil']);
 		header('Location: index.php?action=profil&id='.$infoprofil['id']);
+	}
+	if(isset($_POST['public'])){
+		$id = $_POST['id'];
+		$pourqui = 'public';
+		$insertmanager = new Insertmanager();
+		$update = $insertmanager->modifierpourqui($id, $pourqui);
+		header('Location: index.php?action=image&id='.$infoprofil['id']);
+	}
+	if(isset($_POST['priver'])){
+		$id = $_POST['id'];
+		$pourqui = 'priver';
+		$insertmanager = new Insertmanager();
+		$update = $insertmanager->modifierpourqui($id, $pourqui);
+		header('Location: index.php?action=image&id='.$infoprofil['id']);
 	}
 	if(isset($_POST['deletepicture'])){
 		$deletemanager = new Deletemanager();
@@ -373,6 +452,30 @@ function image($id){
 		header('Location: index.php?action=image&id='.$id);
 	}
 	require ('view/image.php');
+}
+
+function parametre($id){
+	$viewmanager = new Viewmanager();
+	$requser = $viewmanager->infoprofil($id);
+	$userinfo = $requser->fetch();
+	$parametremanager = new Parametremanager();
+	$infoparametre = $parametremanager->selectparametre($userinfo['id']);
+	if (isset($_POST['changeparametre'])){
+		$parametremanager = new Parametremanager();
+		$update = $parametremanager->updateparametre($userinfo['id'], $_POST['background'], $_POST['backgroundheader'], $_POST['backgroundbouton'], $_POST['colorbouton'], $_POST['backgroundboutonhover'], $_POST['colorboutonhover'], $_POST['backgroundprofil'], $_POST['colorlien'], $_POST['colordecorationlien'], $_POST['backgroundboutonform'], $_POST['colorboutonform'], $_POST['backgroundboutonformhover'], $_POST['colorboutonformhover']);
+		header('Location: index.php?action=acceuil&id='.$userinfo['id']);
+	}
+	if(isset($_POST['delete'])){
+		$deletemanager = new Deletemanager();
+		$deletetprofil = $deletemanager->deletetprofil($_POST['id']);
+		$deletetpicture = $deletemanager->deletepicture($_POST['id']);
+		$deletetopicality = $deletemanager->deletetopicality($_POST['id']);
+		$deleteparametrecolor = $deletemanager->deleteparametrecolor($_POST['id']);
+		$deletecomment = $deletemanager->deletecomment($_POST['name']);
+		header('Location: index.php');
+	}
+	
+	require ('view/parametre.php');
 }
 
 ?>

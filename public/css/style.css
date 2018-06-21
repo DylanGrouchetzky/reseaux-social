@@ -20,7 +20,7 @@ div{
 }
 header{
 	text-align: center;
-	background-color:  #940b50;
+	background-color: #940b50;
 	padding: 2px;
 	margin-bottom: 15px;
 }
@@ -57,6 +57,17 @@ header a, header li{
 	color: #e71528;
 	border: 1px #e71528 solid;
 }
+form .submit{
+	font-weight: bold;
+	padding: 2px;
+	border: none;
+	border-radius: 3px;
+	box-shadow: 0 0 0;
+}
+form .submit:hover{
+	font-weight: bold;
+	border-radius: 3px;
+}
 
 	/*	CONNECT */
 
@@ -91,7 +102,7 @@ header a, header li{
 
 	/* PROFIL */
 
-.profil{
+.profil{ 
 	border: 3px red solid;
 	padding: 10px;
 	text-align: center;
@@ -100,9 +111,11 @@ header a, header li{
 .profil a{
 	text-decoration: none;
 	color: #e71528;
+	font-weight: bold;
 }
 .profil a:hover{
 	text-decoration: #e71528 underline;
+	font-weight: bold;
 }
 .profil img{
 	width: 250px;
@@ -170,4 +183,10 @@ header a, header li{
 .galerie{
 	border: 2px red solid;
 	text-align: center;
+	display: inline-block;
+	margin-bottom: 10px;
+}
+.galeriefont{
+	width: 1000px;
+	margin: 0 auto; 
 }

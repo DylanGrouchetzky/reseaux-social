@@ -10,6 +10,19 @@ class Insertmanager extends Manager{
 		$req->execute(array($pseudo, $mdp, $mail));
 	}
 
+	public function newparametre($idcompte){
+		$db = $this->dbConnect();
+		$req = $db->prepare('INSERT INTO parametrecolor (idcompte, background, backgroundheader, backgroundbouton, colorbouton, backgroundboutonhover, colorboutonhover, backgroundprofil) VALUES (?,?,?,?,?,?,?,?)');
+		$background = '#ffffff';
+		$backgroundheader = '#940b50';
+		$backgroundbouton = '#6a0b3b';
+		$colorbouton = '#ffffff';
+		$backgroundboutonhover = '#ffffff';
+		$colorboutonhover = '#6a0b3b';
+		$backgroundprofil = '#ffffff';
+		$req->execute(array($idcompte, $background, $backgroundheader, $backgroundbouton, $colorbouton, $backgroundboutonhover, $colorboutonhover, $backgroundprofil));
+	}
+
 	public function insertmes($id, $name, $picture, $heure, $jour, $message){
 		$db = $this->dbConnect();
 		$req = $db->prepare('INSERT INTO topicality (compte, name, picture, heure, Jour, message) VALUES (?,?,?,?,?,?)');
@@ -28,6 +41,15 @@ class Insertmanager extends Manager{
 			'moisani' => $moisani,
 			'anneani' => $anneani,
 			'passion' => $passion,
+		));
+	}
+
+	public function modifierpourqui($id, $pourqui){
+		$db = $this->dbConnect();
+		$req = $db->prepare('UPDATE picture SET pourqui = :pourqui WHERE id = :id');
+		$update = $req->execute(array(
+			'id' => $id,
+			'pourqui' => $pourqui,
 		));
 	}
 
@@ -57,10 +79,10 @@ class Insertmanager extends Manager{
 		$req->execute(array($id, $pseudo, $picture, $heure, $jour, $message));
 	}
 
-	public function newpicture($id, $picture){
+	public function newpicture($id, $picture, $newpourqui){
 		$db = $this->dbConnect();
-		$req = $db->prepare('INSERT INTO picture (idcompte, picture) VALUES (?,?)');
-		$req->execute(array($id, $picture));
+		$req = $db->prepare('INSERT INTO picture (idcompte, picture, pourqui) VALUES (?,?,?)');
+		$req->execute(array($id, $picture, $newpourqui));
 	}
 
 	public function updatepicture($id, $picture){
